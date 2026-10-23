@@ -48,7 +48,7 @@ struct RogueItem
 struct BagPocket
 {
     struct ItemSlot *itemSlots;
-    u8 capacity;
+    u16 capacity; // Used as the pocket size; a pocket can hold more than 255 stacks
 };
 
 extern const struct Item gItems[];

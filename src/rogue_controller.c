@@ -7806,7 +7806,8 @@ void Rogue_ApplyMonCompetitiveSet(struct Pokemon* mon, u8 level, struct RoguePok
 
     if(!rules->skipNature)
     {
-        if (preset->nature)
+        // NUM_NATURES means unspecified (NATURE_HARDY is 0)
+        if (preset->nature < NUM_NATURES)
         {
             SetNature(mon, preset->nature);
         }
@@ -8022,6 +8023,9 @@ void Rogue_ApplyMonCompetitiveSet(struct Pokemon* mon, u8 level, struct RoguePok
 
                 SetMonData(mon, MON_DATA_HP_IV + i, &value);
             }
+
+            // IVs changed, so cached stats are stale
+            CalculateMonStats(mon);
         }
     }
 }
@@ -8460,6 +8464,9 @@ static void FillWithRoamerState(struct Pokemon* mon, u8 level)
     temp = gRogueRun.wildEncounters.roamer.status;
     SetMonData(mon, MON_DATA_STATUS, &temp);
 
+    // IVs were overwritten above, so recalc before using MAX_HP
+    CalculateMonStats(mon);
+
     temp = (((u32)gRogueRun.wildEncounters.roamer.hpPerc) * GetMonData(mon, MON_DATA_MAX_HP)) / 100;
     if(temp <= 0)
         temp = 1;
@@ -8653,6 +8660,7 @@ void Rogue_ModifyWildMon(struct Pokemon* mon)
             temp = 31;
             SetMonData(mon, MON_DATA_HP_IV + statA, &temp);
             //SetMonData(mon, MON_DATA_HP_IV + statB, &temp);
+            CalculateMonStats(mon);
 
             // Clear held item
             temp = 0;
@@ -8739,6 +8747,7 @@ void Rogue_ModifyScriptMon(struct Pokemon* mon)
             temp = 31;
             SetMonData(mon, MON_DATA_HP_IV + statA, &temp);
             SetMonData(mon, MON_DATA_HP_IV + statB, &temp);
+            CalculateMonStats(mon);
 
             // Clear held item
             temp = 0;

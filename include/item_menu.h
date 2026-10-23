@@ -74,7 +74,7 @@ struct BagMenu
     const u8* contextMenuItemsPtr;
     u8 contextMenuItemsBuffer[4];
     u8 contextMenuNumItems;
-    u8 numItemStacks[POCKETS_COUNT];
+    u16 numItemStacks[POCKETS_COUNT];
     u8 numShownItems[POCKETS_COUNT];
     s16 graphicsLoadState;
     u8 unused2[14];
@@ -93,7 +93,7 @@ void CB2_BagMenuFromBattle(void);
 void UpdatePocketListPosition(u8 pocketId);
 void CB2_ReturnToBagMenuPocket(void);
 void CB2_BagMenuFromStartMenu(void);
-u8 GetItemListPosition(u8 pocketId);
+u16 GetItemListPosition(u8 pocketId);
 bool8 UseRegisteredKeyItemOnField(void);
 void CB2_GoToSellMenu(void);
 void GoToBagMenu(u8 bagMenuType, u8 pocketId, void ( *exitCallback)());

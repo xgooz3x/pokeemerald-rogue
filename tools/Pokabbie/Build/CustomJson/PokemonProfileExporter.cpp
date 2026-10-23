@@ -619,6 +619,8 @@ void ExportPokemonProfileData_C(std::ofstream& fileStream, std::string const& da
 
 					if (!compSet.m_Nature.empty())
 						upperBlock << "\t\t.nature=" << compSet.m_Nature << ",\n";
+					else
+						upperBlock << "\t\t.nature=NUM_NATURES,\n"; // NATURE_HARDY is 0, so 0 cannot mean "unspecified"
 
 					upperBlock << "\t\t.moves=\n\t\t{\n";
 					for (std::string const& move : compSet.m_Moves)
