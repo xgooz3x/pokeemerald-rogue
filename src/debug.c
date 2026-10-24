@@ -72,6 +72,7 @@
 #include "rogue_pokedex.h"
 #include "rogue_popup.h"
 #include "rogue_query.h"
+#include "rogue_timeofday.h"
 
 #ifndef ROGUE_EXPANSION
 #define MON_DATA_SPECIES_OR_EGG MON_DATA_SPECIES2
@@ -118,6 +119,11 @@ enum RogueUtilMenu
     DEBUG_ROGUE_UTIL_MENU_SET_WEATHER,
     DEBUG_ROGUE_UTIL_MENU_CHANGE_OUTFIT,
     DEBUG_ROGUE_UTIL_MENU_RANDOM_TEAM,
+    DEBUG_ROGUE_UTIL_MENU_TEST_BIG_BAG,
+    DEBUG_ROGUE_UTIL_MENU_TEST_CHECK_STATS,
+    DEBUG_ROGUE_UTIL_MENU_TEST_HARDY,
+    DEBUG_ROGUE_UTIL_MENU_TEST_COUNT_ROOMS,
+    DEBUG_ROGUE_UTIL_MENU_TEST_TIME,
 };
 
 enum PartyBoxesMenu
@@ -375,6 +381,11 @@ static void DebugAction_RogueUtil_GiveCommonItems(u8 taskId);
 static void DebugAction_RogueUtil_SetWeather(u8 taskId);
 static void DebugAction_RogueUtil_ChangeOutfit(u8 taskId);
 static void DebugAction_RogueUtil_RandomTradeTeam(u8 taskId);
+static void DebugAction_RogueTest_BigBag(u8 taskId);
+static void DebugAction_RogueTest_CheckStats(u8 taskId);
+static void DebugAction_RogueTest_HardyPreset(u8 taskId);
+static void DebugAction_RogueTest_CountRooms(u8 taskId);
+static void DebugAction_RogueTest_TimeOfDay(u8 taskId);
 
 static void DebugAction_PartyBoxes_AccessPC(u8 taskId);
 static void DebugAction_PartyBoxes_MoveReminder(u8 taskId);
@@ -523,6 +534,11 @@ static const u8 sDebugText_RogueUtil_GiveCommonItems[] =     _("Give Common Item
 static const u8 sDebugText_RogueUtil_SetWeather[] =          _("Set Weather");
 static const u8 sDebugText_RogueUtil_ChangeOutfit[] =        _("Change Outfit");
 static const u8 sDebugText_RogueUtil_TradeTeam[] =           _("Trade Team");
+static const u8 sDebugText_RogueTest_BigBag[] =          _("Test: Bag 255+");
+static const u8 sDebugText_RogueTest_CheckStats[] =      _("Test: Check Stats");
+static const u8 sDebugText_RogueTest_Hardy[] =           _("Test: Hardy Set");
+static const u8 sDebugText_RogueTest_CountRooms[] =      _("Test: Count Rooms");
+static const u8 sDebugText_RogueTest_Time[] =            _("Test: Time of Day");
 // Party/Boxes Menu
 static const u8 sDebugText_PartyBoxes_AccessPC[] =           _("Access PC");
 static const u8 sDebugText_PartyBoxes_MoveReminder[] =       _("Move Reminder");
@@ -704,6 +720,11 @@ static const struct ListMenuItem sDebugMenu_Items_RogueUtilities[] =
     [DEBUG_ROGUE_UTIL_MENU_SET_WEATHER]         = {sDebugText_RogueUtil_SetWeather,      DEBUG_ROGUE_UTIL_MENU_SET_WEATHER},
     [DEBUG_ROGUE_UTIL_MENU_CHANGE_OUTFIT]       = {sDebugText_RogueUtil_ChangeOutfit,    DEBUG_ROGUE_UTIL_MENU_CHANGE_OUTFIT},
     [DEBUG_ROGUE_UTIL_MENU_RANDOM_TEAM]         = {sDebugText_RogueUtil_TradeTeam,       DEBUG_ROGUE_UTIL_MENU_RANDOM_TEAM},
+    [DEBUG_ROGUE_UTIL_MENU_TEST_BIG_BAG]       = {sDebugText_RogueTest_BigBag,       DEBUG_ROGUE_UTIL_MENU_TEST_BIG_BAG},
+    [DEBUG_ROGUE_UTIL_MENU_TEST_CHECK_STATS]   = {sDebugText_RogueTest_CheckStats,   DEBUG_ROGUE_UTIL_MENU_TEST_CHECK_STATS},
+    [DEBUG_ROGUE_UTIL_MENU_TEST_HARDY]         = {sDebugText_RogueTest_Hardy,        DEBUG_ROGUE_UTIL_MENU_TEST_HARDY},
+    [DEBUG_ROGUE_UTIL_MENU_TEST_COUNT_ROOMS]   = {sDebugText_RogueTest_CountRooms,   DEBUG_ROGUE_UTIL_MENU_TEST_COUNT_ROOMS},
+    [DEBUG_ROGUE_UTIL_MENU_TEST_TIME]          = {sDebugText_RogueTest_Time,         DEBUG_ROGUE_UTIL_MENU_TEST_TIME},
 };
 
 static const struct ListMenuItem sDebugMenu_Items_PartyBoxes[] =
@@ -866,6 +887,11 @@ static void (*const sDebugMenu_Actions_RogueUtilities[])(u8) =
     [DEBUG_ROGUE_UTIL_MENU_SET_WEATHER]       = DebugAction_RogueUtil_SetWeather,
     [DEBUG_ROGUE_UTIL_MENU_CHANGE_OUTFIT]     = DebugAction_RogueUtil_ChangeOutfit,
     [DEBUG_ROGUE_UTIL_MENU_RANDOM_TEAM]       = DebugAction_RogueUtil_RandomTradeTeam,
+    [DEBUG_ROGUE_UTIL_MENU_TEST_BIG_BAG]      = DebugAction_RogueTest_BigBag,
+    [DEBUG_ROGUE_UTIL_MENU_TEST_CHECK_STATS]  = DebugAction_RogueTest_CheckStats,
+    [DEBUG_ROGUE_UTIL_MENU_TEST_HARDY]        = DebugAction_RogueTest_HardyPreset,
+    [DEBUG_ROGUE_UTIL_MENU_TEST_COUNT_ROOMS]  = DebugAction_RogueTest_CountRooms,
+    [DEBUG_ROGUE_UTIL_MENU_TEST_TIME]         = DebugAction_RogueTest_TimeOfDay,
 };
 
 static void (*const sDebugMenu_Actions_PartyBoxes[])(u8) =
@@ -2322,6 +2348,231 @@ static void DebugAction_RogueUtil_RandomTradeTeam(u8 taskId)
     Debug_DestroyMenu_Full(taskId);
     LockPlayerFieldControls();
     ScriptContext_SetupScript(Rogue_Debug_RandomTradeTeam);
+}
+
+static const u8 sRogueTestText_1[] = _("Items pocket stacks: ");
+static const u8 sRogueTestText_2[] = _("\nNeeds to be over 255.");
+static const u8 sRogueTestText_3[] = _(" slot ");
+static const u8 sRogueTestText_4[] = _(" empty");
+static const u8 sRogueTestText_5[] = _(" all OK");
+static const u8 sRogueTestText_6[] = _(" STALE");
+static const u8 sRogueTestText_7[] = _("Party:");
+static const u8 sRogueTestText_8[] = _("\nLast foe:");
+static const u8 sRogueTestText_9[] = _("Party is empty.");
+static const u8 sRogueTestText_10[] = _("Lead nature: ");
+static const u8 sRogueTestText_11[] = _(" -> ");
+static const u8 sRogueTestText_12[] = _("\nShould end as HARDY.");
+static const u8 sRogueTestText_13[] = _("Start a run first.");
+static const u8 sRogueTestText_14[] = _("Difficulty ");
+static const u8 sRogueTestText_15[] = _(": ");
+static const u8 sRogueTestText_16[] = _(" routes\n");
+static const u8 sRogueTestText_17[] = _(" special rooms");
+static const u8 sRogueTestText_18[] = _(" = DAWN");
+static const u8 sRogueTestText_19[] = _(" = DAY");
+static const u8 sRogueTestText_20[] = _(" = DUSK");
+static const u8 sRogueTestText_21[] = _(" = NIGHT");
+static const u8 sRogueTestText_22[] = _(" = ???");
+static const u8 sRogueTestText_23[] = _("\nTime visuals: ON");
+static const u8 sRogueTestText_24[] = _("\nTime visuals: OFF");
+
+// Review test helpers (PR #2). Each one sets up or inspects a case that's slow to reach by playing.
+
+static void Debug_ShowTestResult(u8 taskId)
+{
+    Debug_DestroyMenu_Full(taskId);
+    LockPlayerFieldControls();
+    ScriptContext_SetupScript(Debug_ShowFieldMessageStringVar4);
+}
+
+static u8* Debug_AppendNum(u8* str, u32 value)
+{
+    return ConvertIntToDecimalStringN(str, value, STR_CONV_MODE_LEFT_ALIGN, 5);
+}
+
+// Pushes the Items pocket past 255 stacks by adding two full stacks of every item
+static void DebugAction_RogueTest_BigBag(u8 taskId)
+{
+    u16 itemId, pass;
+    u8* str = gStringVar4;
+
+    gSaveBlock1Ptr->bagCapacityUpgrades = ITEM_BAG_MAX_CAPACITY_UPGRADE;
+
+    // Add full stacks one at a time; a single add of more than a stack would go into one slot.
+    // Only ~27 real items live in this pocket, so keep adding rounds until it passes 255 stacks.
+    for (pass = 0; pass < 20 && gBagPockets[ITEMS_POCKET].capacity < 300; pass++)
+    {
+        for (itemId = 1; itemId < ITEMS_COUNT; itemId++)
+        {
+            // Unused and disabled IDs still claim the Items pocket, but have no usable name
+            const u8* name = ItemId_GetName(itemId);
+            if (!Rogue_IsItemEnabled(itemId) || name == NULL || name[0] == EOS
+             || StringCompare(name, ItemId_GetName(ITEM_NONE)) == 0
+             || ItemId_GetPocket(itemId) != POCKET_ITEMS)
+                continue;
+
+            if (CheckBagHasSpace(itemId, MAX_BAG_ITEM_CAPACITY))
+                AddBagItem(itemId, MAX_BAG_ITEM_CAPACITY);
+        }
+    }
+
+    str = StringCopy(str, sRogueTestText_1);
+    str = Debug_AppendNum(str, gBagPockets[ITEMS_POCKET].capacity);
+    str = StringCopy(str, sRogueTestText_2);
+    Debug_ShowTestResult(taskId);
+}
+
+static bool8 Debug_AreMonStatsCurrent(struct Pokemon* mon)
+{
+    struct Pokemon recalced = *mon;
+    u32 i;
+
+    CalculateMonStats(&recalced);
+
+    for (i = MON_DATA_MAX_HP; i <= MON_DATA_SPDEF; i++)
+    {
+        if (GetMonData(mon, i) != GetMonData(&recalced, i))
+            return FALSE;
+    }
+    return TRUE;
+}
+
+static u8* Debug_AppendStaleSlots(u8* str, struct Pokemon* party, u32 count)
+{
+    u32 i, checked = 0, stale = 0;
+
+    for (i = 0; i < count; i++)
+    {
+        if (GetMonData(&party[i], MON_DATA_SPECIES) == SPECIES_NONE)
+            continue;
+
+        checked++;
+        if (!Debug_AreMonStatsCurrent(&party[i]))
+        {
+            stale++;
+            str = StringCopy(str, sRogueTestText_3);
+            str = Debug_AppendNum(str, i + 1);
+        }
+    }
+
+    if (checked == 0)
+        return StringCopy(str, sRogueTestText_4);
+    if (stale == 0)
+        return StringCopy(str, sRogueTestText_5);
+    return StringCopy(str, sRogueTestText_6);
+}
+
+// Compares stored stats with freshly calculated ones. The enemy party keeps the last opponent's team.
+static void DebugAction_RogueTest_CheckStats(u8 taskId)
+{
+    u8* str = gStringVar4;
+
+    str = StringCopy(str, sRogueTestText_7);
+    str = Debug_AppendStaleSlots(str, gPlayerParty, PARTY_SIZE);
+    str = StringCopy(str, sRogueTestText_8);
+    str = Debug_AppendStaleSlots(str, gEnemyParty, PARTY_SIZE);
+    Debug_ShowTestResult(taskId);
+}
+
+// Applies a nature-only preset with NATURE_HARDY to the lead mon
+static void DebugAction_RogueTest_HardyPreset(u8 taskId)
+{
+    struct RoguePokemonCompetitiveSet preset;
+    struct RoguePokemonCompetitiveSetRules rules;
+    struct Pokemon* mon = &gPlayerParty[0];
+    u8* str = gStringVar4;
+    u8 friendship;
+
+    if (GetMonData(mon, MON_DATA_SPECIES) == SPECIES_NONE)
+    {
+        StringCopy(str, sRogueTestText_9);
+        Debug_ShowTestResult(taskId);
+        return;
+    }
+
+    memset(&preset, 0, sizeof(preset));
+    memset(&rules, 0, sizeof(rules));
+    preset.nature = NATURE_HARDY;
+    preset.hiddenPowerType = TYPE_NONE;
+    preset.teraType = TYPE_NONE;
+    rules.skipMoves = TRUE;
+    rules.skipHeldItem = TRUE;
+    rules.skipAbility = TRUE;
+    rules.skipHiddenPowerType = TRUE;
+    rules.skipTeraType = TRUE;
+
+    str = StringCopy(str, sRogueTestText_10);
+    str = StringCopy(str, gNatureNamePointers[GetNature(mon)]);
+    // Applying a set always overwrites friendship, so put the original back
+    friendship = GetMonData(mon, MON_DATA_FRIENDSHIP);
+    Rogue_ApplyMonCompetitiveSet(mon, GetMonData(mon, MON_DATA_LEVEL), &preset, &rules);
+    SetMonData(mon, MON_DATA_FRIENDSHIP, &friendship);
+    str = StringCopy(str, sRogueTestText_11);
+    str = StringCopy(str, gNatureNamePointers[GetNature(mon)]);
+    str = StringCopy(str, sRogueTestText_12);
+    Debug_ShowTestResult(taskId);
+}
+
+// Counts room types on the current adventure map. Use Next Difficulty to regenerate.
+static void DebugAction_RogueTest_CountRooms(u8 taskId)
+{
+    u32 i, routes = 0, other = 0;
+    u8* str = gStringVar4;
+
+    if (!Rogue_IsRunActive())
+    {
+        StringCopy(str, sRogueTestText_13);
+        Debug_ShowTestResult(taskId);
+        return;
+    }
+
+    for (i = 0; i < gRogueAdvPath.roomCount; i++)
+    {
+        switch (gRogueAdvPath.rooms[i].roomType)
+        {
+        case ADVPATH_ROOM_ROUTE:
+            routes++;
+            break;
+        case ADVPATH_ROOM_NONE:
+        case ADVPATH_ROOM_BOSS:
+            break;
+        default:
+            other++;
+            break;
+        }
+    }
+
+    str = StringCopy(str, sRogueTestText_14);
+    str = Debug_AppendNum(str, Rogue_GetCurrentDifficulty());
+    str = StringCopy(str, sRogueTestText_15);
+    str = Debug_AppendNum(str, routes);
+    str = StringCopy(str, sRogueTestText_16);
+    str = Debug_AppendNum(str, other);
+    str = StringCopy(str, sRogueTestText_17);
+    Debug_ShowTestResult(taskId);
+}
+
+// Shows what gameplay code sees for the time of day
+static void DebugAction_RogueTest_TimeOfDay(u8 taskId)
+{
+    u8* str = gStringVar4;
+
+    str = ConvertIntToDecimalStringN(str, RogueToD_GetHours(), STR_CONV_MODE_LEADING_ZEROS, 2);
+    *str++ = CHAR_COLON;
+    str = ConvertIntToDecimalStringN(str, RogueToD_GetMinutes(), STR_CONV_MODE_LEADING_ZEROS, 2);
+
+    if (RogueToD_IsDawn())
+        str = StringCopy(str, sRogueTestText_18);
+    else if (RogueToD_IsDay())
+        str = StringCopy(str, sRogueTestText_19);
+    else if (RogueToD_IsDusk())
+        str = StringCopy(str, sRogueTestText_20);
+    else if (RogueToD_IsNight())
+        str = StringCopy(str, sRogueTestText_21);
+    else
+        str = StringCopy(str, sRogueTestText_22);
+
+    str = StringCopy(str, RogueToD_ApplyTimeVisuals() ? sRogueTestText_23 : sRogueTestText_24);
+    Debug_ShowTestResult(taskId);
 }
 
 void BufferExpansionVersion(struct ScriptContext *ctx)
