@@ -2397,8 +2397,9 @@ static void DebugAction_RogueTest_BigBag(u8 taskId)
 
     gSaveBlock1Ptr->bagCapacityUpgrades = ITEM_BAG_MAX_CAPACITY_UPGRADE;
 
-    // Add full stacks one at a time; a single add of more than a stack would go into one slot
-    for (pass = 0; pass < 4; pass++)
+    // Add full stacks one at a time; a single add of more than a stack would go into one slot.
+    // Only ~27 real items live in this pocket, so keep adding rounds until it passes 255 stacks.
+    for (pass = 0; pass < 20 && gBagPockets[ITEMS_POCKET].capacity < 300; pass++)
     {
         for (itemId = 1; itemId < ITEMS_COUNT; itemId++)
         {
