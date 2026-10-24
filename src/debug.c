@@ -2398,11 +2398,17 @@ static void DebugAction_RogueTest_BigBag(u8 taskId)
     gSaveBlock1Ptr->bagCapacityUpgrades = ITEM_BAG_MAX_CAPACITY_UPGRADE;
 
     // Add full stacks one at a time; a single add of more than a stack would go into one slot
-    for (pass = 0; pass < 2; pass++)
+    for (pass = 0; pass < 4; pass++)
     {
         for (itemId = 1; itemId < ITEMS_COUNT; itemId++)
         {
-            if (ItemId_GetPocket(itemId) == POCKET_ITEMS && CheckBagHasSpace(itemId, MAX_BAG_ITEM_CAPACITY))
+            // Unused IDs claim the Items pocket but have no name, or ITEM_NONE's "????????"
+            const u8* name = ItemId_GetName(itemId);
+            if (name == NULL || StringCompare(name, ItemId_GetName(ITEM_NONE)) == 0
+             || ItemId_GetPocket(itemId) != POCKET_ITEMS)
+                continue;
+
+            if (CheckBagHasSpace(itemId, MAX_BAG_ITEM_CAPACITY))
                 AddBagItem(itemId, MAX_BAG_ITEM_CAPACITY);
         }
     }
