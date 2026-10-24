@@ -1125,10 +1125,13 @@ static void PrintRecommendedMonSetToWindow(u8 windowId, struct Pokemon* mon, str
             AddTextPrinterParameterized(windowId, FONT_SMALL_NARROW, gStringVar4, 2, 12 * (line++), TEXT_SKIP_DRAW, NULL);
         }
 
-        // Nature
-        StringCopy(gStringVar1, gNatureNamePointers[preset->nature]);
-        StringExpandPlaceholders(gStringVar4, GetNature(mon) == preset->nature ? sText_PresetMonNature_Has : sText_PresetMonNature_Missing);
-        AddTextPrinterParameterized(windowId, FONT_SMALL_NARROW, gStringVar4, 2, 12 * (line++), TEXT_SKIP_DRAW, NULL);
+        // Nature (NUM_NATURES means the set doesn't specify one)
+        if(preset->nature < NUM_NATURES)
+        {
+            StringCopy(gStringVar1, gNatureNamePointers[preset->nature]);
+            StringExpandPlaceholders(gStringVar4, GetNature(mon) == preset->nature ? sText_PresetMonNature_Has : sText_PresetMonNature_Missing);
+            AddTextPrinterParameterized(windowId, FONT_SMALL_NARROW, gStringVar4, 2, 12 * (line++), TEXT_SKIP_DRAW, NULL);
+        }
 
         // Moves
         for(i = 0; i < MAX_MON_MOVES; ++i)
