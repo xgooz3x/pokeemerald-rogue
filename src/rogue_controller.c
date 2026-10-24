@@ -1218,14 +1218,17 @@ static void ModifyExistingMonToCustomMon(u32 customMonId, struct Pokemon* mon)
 
     if(hasCustomNickname)
         SetMonData(mon, MON_DATA_NICKNAME, text);
+
+    // The restored IVs change the stats, so refresh the cached values
+    CalculateMonStats(mon);
 }
 
 void Rogue_ModifyCaughtMon(struct Pokemon *mon)
 {
     if(Rogue_IsRunActive())
     {
-        u16 hp = GetMonData(mon, MON_DATA_HP);
-        u16 maxHp = GetMonData(mon, MON_DATA_MAX_HP);
+        u16 hp;
+        u16 maxHp;
         u32 statusAilment = 0; // STATUS1_NONE
 
         if(gRogueLocal.wildBattleCustomMonId != 0)
@@ -1234,6 +1237,10 @@ void Rogue_ModifyCaughtMon(struct Pokemon *mon)
             RogueGift_RemoveDynamicCustomMon(gRogueLocal.wildBattleCustomMonId);
             gRogueLocal.wildBattleCustomMonId = 0;
         }
+
+        // Read HP after any custom-mon swap so it matches the final stats
+        hp = GetMonData(mon, MON_DATA_HP);
+        maxHp = GetMonData(mon, MON_DATA_MAX_HP);
 
         hp = max(maxHp / 2, hp);
 
