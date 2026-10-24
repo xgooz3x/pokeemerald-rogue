@@ -2402,9 +2402,10 @@ static void DebugAction_RogueTest_BigBag(u8 taskId)
     {
         for (itemId = 1; itemId < ITEMS_COUNT; itemId++)
         {
-            // Unused IDs claim the Items pocket but have no name, or ITEM_NONE's "????????"
+            // Unused and disabled IDs still claim the Items pocket, but have no usable name
             const u8* name = ItemId_GetName(itemId);
-            if (name == NULL || StringCompare(name, ItemId_GetName(ITEM_NONE)) == 0
+            if (!Rogue_IsItemEnabled(itemId) || name == NULL || name[0] == EOS
+             || StringCompare(name, ItemId_GetName(ITEM_NONE)) == 0
              || ItemId_GetPocket(itemId) != POCKET_ITEMS)
                 continue;
 
