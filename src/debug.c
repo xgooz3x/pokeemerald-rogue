@@ -2472,6 +2472,7 @@ static void DebugAction_RogueTest_HardyPreset(u8 taskId)
     struct RoguePokemonCompetitiveSetRules rules;
     struct Pokemon* mon = &gPlayerParty[0];
     u8* str = gStringVar4;
+    u8 friendship;
 
     if (GetMonData(mon, MON_DATA_SPECIES) == SPECIES_NONE)
     {
@@ -2493,7 +2494,10 @@ static void DebugAction_RogueTest_HardyPreset(u8 taskId)
 
     str = StringCopy(str, sRogueTestText_10);
     str = StringCopy(str, gNatureNamePointers[GetNature(mon)]);
+    // Applying a set always overwrites friendship, so put the original back
+    friendship = GetMonData(mon, MON_DATA_FRIENDSHIP);
     Rogue_ApplyMonCompetitiveSet(mon, GetMonData(mon, MON_DATA_LEVEL), &preset, &rules);
+    SetMonData(mon, MON_DATA_FRIENDSHIP, &friendship);
     str = StringCopy(str, sRogueTestText_11);
     str = StringCopy(str, gNatureNamePointers[GetNature(mon)]);
     str = StringCopy(str, sRogueTestText_12);
