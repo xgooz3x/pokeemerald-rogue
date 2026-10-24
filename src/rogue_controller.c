@@ -1227,7 +1227,8 @@ void Rogue_ModifyCaughtMon(struct Pokemon *mon)
 {
     if(Rogue_IsRunActive())
     {
-        u16 hp;
+        // Keep the HP from battle; the custom-mon swap rebuilds the mon at full HP
+        u16 hp = GetMonData(mon, MON_DATA_HP);
         u16 maxHp;
         u32 statusAilment = 0; // STATUS1_NONE
 
@@ -1238,11 +1239,10 @@ void Rogue_ModifyCaughtMon(struct Pokemon *mon)
             gRogueLocal.wildBattleCustomMonId = 0;
         }
 
-        // Read HP after any custom-mon swap so it matches the final stats
-        hp = GetMonData(mon, MON_DATA_HP);
+        // Read max HP after the swap so it matches the final stats
         maxHp = GetMonData(mon, MON_DATA_MAX_HP);
 
-        hp = max(maxHp / 2, hp);
+        hp = min(max(maxHp / 2, hp), maxHp);
 
         // Heal up to 1/2 health and remove status effect
         SetMonData(mon, MON_DATA_HP, &hp);
