@@ -614,7 +614,7 @@ void SetItemMenuSwapLineInvisibility(bool8 invisible)
     SetSwapLineSpritesInvisibility(&gBagMenu->spriteIds[ITEMMENUSPRITE_SWAP_LINE], ITEMMENU_SWAP_LINE_LENGTH, invisible);
 }
 
-void UpdateItemMenuSwapLinePos(u8 y)
+void UpdateItemMenuSwapLinePos(u16 y)
 {
     UpdateSwapLineSpritesPos(&gBagMenu->spriteIds[ITEMMENUSPRITE_SWAP_LINE], ITEMMENU_SWAP_LINE_LENGTH | SWAP_LINE_HAS_MARGIN, 120, (y + 1) * 16);
 }

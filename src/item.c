@@ -338,7 +338,7 @@ void GetBerryCountString(u8 *dst, const u8 *berryName, u32 quantity)
 
 bool8 IsBagPocketNonEmpty(u8 pocket)
 {
-    u8 i;
+    u16 i;
 
     for (i = 0; i < gBagPockets[pocket - 1].capacity; i++)
     {
@@ -350,7 +350,7 @@ bool8 IsBagPocketNonEmpty(u8 pocket)
 
 bool8 CheckBagHasItem(u16 itemId, u16 count)
 {
-    u8 i;
+    u16 i;
     u8 pocket;
 
     if (ItemId_GetPocket(itemId) == 0)
@@ -381,7 +381,7 @@ bool8 CheckBagHasItem(u16 itemId, u16 count)
 
 u16 GetItemCountInBag(u16 itemId)
 {
-    u8 i;
+    u16 i;
     u8 pocket;
     u16 count = 0;
 
@@ -420,7 +420,7 @@ bool8 HasAtLeastOneBerry(void)
 
 bool8 CheckBagHasSpace(u16 itemId, u16 count)
 {
-    u8 i;
+    u16 i;
     u8 itemPocket;
     u16 freeSlots;
 
@@ -842,7 +842,7 @@ bool8 AddBagItem(u16 itemId, u16 count)
 
 bool8 RemoveBagItem(u16 itemId, u16 count)
 {
-    u8 i;
+    u16 i;
     u16 totalQuantity = 0;
 
     if (ItemId_GetPocket(itemId) == POCKET_NONE || itemId == ITEM_NONE)
@@ -850,7 +850,7 @@ bool8 RemoveBagItem(u16 itemId, u16 count)
 
     {
         u8 pocket;
-        u8 var;
+        u16 var;
         u16 ownedCount;
         struct BagPocket *itemPocket;
 

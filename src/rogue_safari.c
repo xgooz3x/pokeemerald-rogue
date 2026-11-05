@@ -419,10 +419,11 @@ static u8 AllocCustomMonSafariSlot(u32 customMonId, u8 forSafariIndex)
         // Find first mon of priority and give back it's slot
         for(i = 0; i < ROGUE_SAFARI_TOTAL_MONS; ++i)
         {
-            if(i == forSafariIndex || gRogueSaveBlock->safariMons[i].customMonLookup == 0)
-                continue;
-
             idx = (offset + i) % ROGUE_SAFARI_TOTAL_MONS;
+
+            // Only evict custom mons, and never the slot we're allocating for
+            if(idx == forSafariIndex || gRogueSaveBlock->safariMons[idx].customMonLookup == 0)
+                continue;
 
             if(gRogueSaveBlock->safariMons[idx].priorityCounter == lowestPriority)
             {

@@ -64,7 +64,7 @@
 // Immune to blending; doesn't conflict with tags in event_object_movement
 #define PAL_TAG_KEY_ITEM_WHEEL  0x9000
 
-#define MAX_POCKET_ITEMS BAG_ITEM_CAPACITY
+#define MAX_POCKET_ITEMS (BAG_ITEM_CAPACITY + 1) // +1 for the "Close bag" entry
 
 // RogueNote: TODO - Modify pocket structure
 
@@ -117,7 +117,7 @@ enum {
 };
 
 // Item list ID for toSwapPos to indicate an item is not currently being swapped
-#define NOT_SWAPPING 0xFF
+#define NOT_SWAPPING 0xFFFF
 
 struct ListBuffer1 {
     struct ListMenuItem subBuffers[MAX_POCKET_ITEMS];
@@ -1274,7 +1274,7 @@ static void BagMenu_ItemPrintCallback(u8 windowId, u32 itemIndex, u8 y)
         if (gBagMenu->toSwapPos != NOT_SWAPPING)
         {
             // Swapping items, draw cursor at original item's location
-            if (gBagMenu->toSwapPos == (u8)itemIndex)
+            if (gBagMenu->toSwapPos == itemIndex)
                 BagMenu_PrintCursorAtPos(y, COLORID_GRAY_CURSOR);
             else
                 BagMenu_PrintCursorAtPos(y, COLORID_NONE);
@@ -1579,7 +1579,7 @@ static void InitPocketScrollPositions(void)
         SetCursorScrollWithinListBounds(&gBagPosition.scrollPosition[i], &gBagPosition.cursorPosition[i], gBagMenu->numShownItems[i], gBagMenu->numItemStacks[i], MAX_ITEMS_SHOWN);
 }
 
-u8 GetItemListPosition(u8 pocketId)
+u16 GetItemListPosition(u8 pocketId)
 {
     return gBagPosition.scrollPosition[pocketId] + gBagPosition.cursorPosition[pocketId];
 }

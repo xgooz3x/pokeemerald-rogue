@@ -291,16 +291,16 @@ static void CalculateNearFarHues(u16 const* inputPal, u8 avgHue, u8* nearHue, u8
         }
     }
 
-    if(count < 4)
+    if(count == 0)
     {
-        *nearHue = sortedHues[0];
-        *farHue = sortedHues[count - 1];
+        // Every colour is exempt (e.g. greyscale or very dark palette), so there's nothing to sort
+        *nearHue = avgHue;
+        *farHue = avgHue;
+        return;
     }
-    else
-    {
-        *nearHue = sortedHues[0];
-        *farHue = sortedHues[count - 1];
-    }
+
+    *nearHue = sortedHues[0];
+    *farHue = sortedHues[count - 1];
 }
 
 void Rogue_GenerateLayerPaletteByHue(u16 const* inputPal, u16 const* layerRefPal, u16* outputLayers)

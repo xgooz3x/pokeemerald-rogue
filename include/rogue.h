@@ -645,7 +645,7 @@ struct RoguePokemonCompetitiveSet
     u16 ability;
     u8 hiddenPowerType;
     u8 teraType;
-    u8 nature;
+    u8 nature; // NUM_NATURES = unspecified
 };
 
 struct RoguePokemonCompetitiveSetRules

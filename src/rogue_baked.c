@@ -107,14 +107,14 @@ extern const u16 gRogueBake_EggSpecies_Count;
 
 void HistoryBufferPush(u16* buffer, u16 capacity, u16 value)
 {
-    u16 i;
     u16 j;
-    for(i = 1; i < capacity; ++i)
-    {
-        // Reverse to avoid stomping on top of old values
-        j = capacity - i - 1;
+
+    if(capacity == 0)
+        return;
+
+    // Shift back to front to avoid stomping on old values
+    for(j = capacity - 1; j > 0; --j)
         buffer[j] = buffer[j - 1];
-    }
 
     buffer[0] = value;
 }

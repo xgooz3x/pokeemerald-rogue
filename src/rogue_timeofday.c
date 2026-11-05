@@ -251,21 +251,25 @@ void RogueToD_AddMinutes(u16 minutes)
 
 bool8 RogueToD_IsDawn()
 {
+    RecalculateToDDataIfRequired();
     return sTimeOfDay.timeCode == TIME_CODE_DAWN;
 }
 
 bool8 RogueToD_IsDay()
 {
+    RecalculateToDDataIfRequired();
     return sTimeOfDay.timeCode == TIME_CODE_DAY;
 }
 
 bool8 RogueToD_IsDusk()
 {
+    RecalculateToDDataIfRequired();
     return sTimeOfDay.timeCode == TIME_CODE_DUSK;
 }
 
 bool8 RogueToD_IsNight()
 {
+    RecalculateToDDataIfRequired();
     return sTimeOfDay.timeCode == TIME_CODE_NIGHT;
 }
 

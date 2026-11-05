@@ -39,10 +39,12 @@
 
 #define MAX_QUERY_BIT_COUNT (max(QUERY_NUM_MOVES, max(QUERY_NUM_ITEMS, max(QUERY_NUM_ADVENTURE_PATH, max(QUERY_NUM_TRAINERS, max(ITEMS_COUNT, QUERY_NUM_SPECIES))))))
 #define MAX_QUERY_BYTE_COUNT (1 + MAX_QUERY_BIT_COUNT / 8)
+#define MAX_QUERY_WORD_COUNT ((MAX_QUERY_BYTE_COUNT + 3) / 4)
 
 // Old API
 //
-u8 gRogueQueryBits[MAX_QUERY_BYTE_COUNT];
+// Padded to whole words so the iterator can read it 32 bits at a time
+u8 gRogueQueryBits[MAX_QUERY_WORD_COUNT * 4] __attribute__((aligned(4)));
 u16 gRogueQueryBuffer[QUERY_BUFFER_COUNT];
 
 // 2.0 API
@@ -110,7 +112,7 @@ static void AllocQuery(u8 type)
     sRogueQuery.arrayCapacity = 0;
     sRogueQuery.totalWeight = 0;
 
-    memset(&sRogueQuery.bitFlags[0], 0, MAX_QUERY_BYTE_COUNT);
+    memset(&sRogueQuery.bitFlags[0], 0, sizeof(gRogueQueryBits));
     
 #ifdef DEBUG_FEATURE_FRAME_TIMERS
     sRogueQuery.queryStartClock = RogueDebug_SampleClock();
@@ -136,44 +138,32 @@ static void FreeQuery()
 static u32 IncrementActiveIteratorInternal(u32 i)
 {
     // Attempt to avoid uncessary reads by working in steps of 32
-    u32* data32 = ((u32*)sRogueQuery.bitFlags);
-    u32 value, mask, offset, remainder;
+    const u32* data32 = ((const u32*)sRogueQuery.bitFlags);
+    u32 value, offset;
 
     ++i; // always offset by 1
 
-    offset = i / 32;
-    remainder = i % 32;
-    value = data32[offset];
-
-    while(offset < sizeof(gRogueQueryBits) && i < MAX_QUERY_BYTE_COUNT * 8)
+    // Bounds are checked before every word load (storage is padded to MAX_QUERY_WORD_COUNT words)
+    while(i < MAX_QUERY_BYTE_COUNT * 8)
     {
+        offset = i / 32;
+        if(offset >= MAX_QUERY_WORD_COUNT)
+            break;
+
+        value = data32[offset] >> (i % 32);
+
         if(value == 0)
         {
-            // Can optimise and do a big step here
-            // Skip the entire 32 bit value
-            remainder = 0;
-            ++offset;
-            value = data32[offset];
-
-            i = offset * 32;
+            // Nothing else set in this word, skip to the next one
+            i = (offset + 1) * 32;
             continue;
         }
 
-        mask = (1 << remainder);
-
         // Found a bit that is active
-        if(value & mask)
+        if(value & 1)
             break;
 
         ++i;
-        remainder = i % 32;
-
-        if(remainder == 0)
-        {
-            // Entered a new 32 range to check
-            offset = i / 32;
-            value = data32[offset];
-        }
     }
 
     // Clamp
